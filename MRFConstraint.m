@@ -1,0 +1,61 @@
+classdef MRFConstraint < handle
+    properties (SetAccess = public)
+        texture;
+        blocksize;
+        use_gpu = 0;
+        x_sample_ids;
+        y_sample_ids;
+        x_dataratio;
+        y_dataratio;
+        x_sz; %x must be resampled if it changes size, e.g. a gaussian pyr
+    end
+    
+    methods
+        function constraint = MRFConstraint(texture,varargin)
+            constraint.texture = texture;
+            constraint.blocksize = 7;
+            constraint.x_dataratio = .65;
+            constraint.y_dataratio = .2;
+            if numel(varargin)
+                params = varargin{1};
+                if (isfield(params,'blocksize'));constraint.blocksize = params.blocksize;end;
+                if (isfield(params,'x_dataratio'));constraint.x_dataratio = params.x_dataratio;end;
+                if (isfield(params,'y_dataratio'));constraint.y_dataratio = params.y_dataratio;end;
+            end
+            constraint.x_sz = 0;
+        end
+        
+        
+        
+        function enforce_constraint(constraint)
+            t = constraint.texture;
+            if ~isequal(constraint.x_sz,size(t.x))
+                constraint.x_sz = size(t.x);
+                constraint.update_exemplar_sample(); % exemplar has changed sizes: re sample
+            end
+            update_synthesis_sample(constraint); %resample patches from synthesis
+            X = Transform.im2col_sample(t.x, constraint.blocksize, constraint.x_sample_ids);
+            Y = Transform.im2col_sample(t.y, constraint.blocksize, constraint.y_sample_ids);
+            Y = Transport.nn_search(Y,X);
+            t.y = Transform.col2im_sample(Y,t.y,constraint.blocksize,constraint.y_sample_ids);
+        end
+        
+        
+        function change_scale(constraint)
+            update_exemplar_sample(constraint); 
+        end
+        
+        function update_synthesis_sample(constraint)
+            t = constraint.texture;
+            constraint.x_sz = size(t.x);
+            constraint.y_sample_ids = generate_sample_ids(size(t.y),constraint.blocksize,constraint.y_dataratio);
+        end
+        
+        function update_exemplar_sample(constraint)
+            t = constraint.texture;
+            constraint.x_sample_ids = generate_sample_ids(size(t.x),constraint.blocksize,constraint.x_dataratio);
+        end
+    end
+    
+end
+
