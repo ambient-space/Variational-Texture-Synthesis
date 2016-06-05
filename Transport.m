@@ -1,21 +1,21 @@
 classdef Transport
     properties (Constant)
-        use_gpu = 0;
+        use_gpu = 1;
     end
     
     methods (Static)
         
         function [Y,NN_ids] = nn_search(Y,X)
-            fprintf('Computing nearest neighbors... ');
-            t0 = tic;
+%             fprintf('Computing nearest neighbors... ');
+%             t0 = tic;
             %lower bound on OT problem
             if Transport.use_gpu
             	[Y,NN_ids] = Transport.nn_search_gpu(Y,X);
             else
             	[Y,NN_ids] = Transport.nn_search_cpu(Y,X);
             end
-            t = toc(t0);
-            fprintf(['Elapsed time is: ',num2str(t),'\n']);
+%             t = toc(t0);
+%             fprintf(['Elapsed time is: ',num2str(t),'\n']);
         end
         
         function [Y,NN_ids] = nn_search_cpu(Y,X)

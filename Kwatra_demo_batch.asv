@@ -5,11 +5,11 @@ addpath('./../arbyreed textures/');
 figure
 files = dir('./../arbyreed textures/*.png');
 
-batch_name = './../arbyreed wa mrf batch test 3/';
+batch_name = './../arbyreed wa mrf batch test 4/';
 mkdir(batch_name);
 
 
-first_file = 'cedar_breaks.png';
+first_file = 'apples.png';
 b = 1; % 1 = use first file
 for file = files'
     
@@ -29,7 +29,7 @@ x0 = load_texture(file.name);
 if m == n
     x0 =imresize(x0,[256,256]);
 else
-x0 =imresize(x0,[480,640]/2);
+x0 =imresize(x0,[480,640]);
 end
 x0 = Spectrum.periodic(x0);
 
@@ -42,7 +42,7 @@ t1.add_constraint(WaveletConstraint(t1,wc_params));
 
 mc_params.blocksize = 2;
 mc_params.x_dataratio = .35;
-mc_params.y_dataratio = .5;
+mc_params.y_dataratio = .25;
 mc_params.num_levels = 4;
 mc_params.scales = params.scales;
 

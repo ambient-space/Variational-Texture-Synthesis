@@ -53,16 +53,13 @@ classdef Texture < handle
             for s = numel(texture.scales):-1:1
                 texture.x = imresize(texture.x0, texture.scales(s) *x_sz, 'bicubic');
                 texture.y = imresize(texture.y, texture.out_scale *texture.scales(s) *x_sz,'bicubic');
-                
-%                 for k = 1:numel(texture.constraints)
-%                     change_scale(texture.constraints{k});
-%                 end
+
                 
                 for i = 1:texture.iter
                     
-                    tic
+%                     tic
                     enforce_all_constraints(texture);
-                    disp(['Elapsed time for iteration ',num2str(i),' is ',num2str(toc)]);
+%                     disp(['Elapsed time for iteration ',num2str(i),' is ',num2str(toc)]);
                     
                     subplot(121);imshow(texture.x);title(['Exemplar at scale ',num2str(texture.scales(s)),', iteration ',num2str(i)]);
                     subplot(122);imshow(texture.y);title('Synthesis');drawnow;
