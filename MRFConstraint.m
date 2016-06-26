@@ -48,12 +48,12 @@ classdef MRFConstraint < handle
         function update_synthesis_sample(constraint)
             t = constraint.texture;
             constraint.x_sz = size(t.x);
-            constraint.y_sample_ids = generate_sample_ids(size(t.y),constraint.blocksize,constraint.y_dataratio);
+            constraint.y_sample_ids = generate_sample_ids(size(t.y),constraint.y_dataratio);
         end
         
         function update_exemplar_sample(constraint)
             t = constraint.texture;
-            constraint.x_sample_ids = generate_sample_ids(size(t.x),constraint.blocksize,constraint.x_dataratio);
+            constraint.x_sample_ids = generate_sample_ids(size(t.x),constraint.x_dataratio);
         end
     end
     

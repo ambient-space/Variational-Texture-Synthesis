@@ -20,13 +20,7 @@ classdef HistogramConstraint < handle
                 y_pca(:,:,c) = Transport.optimal_transport_1D(y_pca(:,:,c),x_pca(:,:,c));
             end
             y = Transform.ipca(y_pca,base);
-            %
-            %             y = Histogram.transfer(y,x);
             constraint.texture.y = y;
-        end
-        
-        function change_scale(constraint)
-            
         end
         
     end

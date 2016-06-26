@@ -6,46 +6,51 @@ classdef Transform
     end
     
     methods (Static)
-        function X = im2col_sample(x,blocksize,ids)
+        function X = im2col_sample(x,blocksize,ids_x)
             if Transform.use_mex
-                X = im2col_sample_mex(x,ids,blocksize,[size(x,1),size(x,2),size(x,3)]);
+                 X = im2col_periodic(x,ids_x,blocksize,[size(x,1),size(x,2),size(x,3)]);
             else
                 N=size(x,3);
                 sz=[size(x,1),size(x,2)];
-                X=zeros([N*blocksize^2,numel(ids)],'double');
+                X=zeros([N*blocksize^2,numel(ids_x)],'double');
                 r=0:blocksize-1;
-                for k=1:numel(ids)
-                    [i,j]=ind2sub(sz,ids(k));
-                    X(:,k)=reshape(x(r+i,r+j,:),[size(X,1),1]);
+                for k=1:numel(ids_x)
+                    [i,j]=ind2sub(sz,ids_x(k));
+                    r_per = mod(r+i-1,size(x,1))+1;
+                    c_per = mod(r+j-1,size(x,2))+1;
+                    X(:,k)=reshape(x(r_per,c_per,:),[size(X,1),1]);
                 end
             end
         end
         
         function x = col2im_sample(X,x,blocksize,ids_x)
             if Transform.use_mex
-                sz = [size(x,1),size(x,2),size(x,3)];
-                tmp_x = col2im_sample_mex(X,ids_x,blocksize,sz);
+                tmp_x=col2im_periodic(X,ids_x,blocksize,size(x));
             else
                 N=size(X,1)/blocksize^2;
                 if N~=fix(N)
                     error('incorrect dims');
                 end
-                x_sz = size(x);
-                tmp_x = zeros(x_sz);
-                x_sz = x_sz(1:2);
-                weightmatrix = zeros(x_sz(1:2));
+                s1 = size(x);
+                y = zeros(s1);
+                weightmatrix = zeros(s1);
+                s1 = s1(1:2);
+                b = 0:blocksize-1;
                 for k=1:size(X,2)
-                    [i,j] = ind2sub(x_sz,ids_x(k));
+
+                    i = mod(ids_x(k)-1,s1(1));
+                    j = floor((ids_x(k)-1)/s1(1));
+
                     temp = X(:,k);
-                    weightmatrix(i:i+blocksize-1,j:j+blocksize-1)=weightmatrix(i:i+blocksize-1,j:j+blocksize-1)+1;
-                    tmp_x(i:i+blocksize-1,j:j+blocksize-1,:) = tmp_x(i:i+blocksize-1,j:j+blocksize-1,:)+reshape(temp,blocksize,blocksize,N);
+
+                    r_per = mod(b + i,s1(1)) + 1;
+                    c_per = mod(b + j,s1(2)) + 1;
+
+                    weightmatrix(r_per,c_per,:)=weightmatrix(r_per,c_per,:)+1;
+                    y(r_per,c_per,:)=y(r_per,c_per,:)+reshape(temp,blocksize,blocksize,N);
                 end
-                
-                weightmatrix(weightmatrix~=0)=1./weightmatrix(weightmatrix~=0);
-                
-                for i=1:size(tmp_x,3)
-                    tmp_x(:,:,i) = tmp_x(:,:,i).*weightmatrix;
-                end
+                y(weightmatrix~=0) = y(weightmatrix~=0)./weightmatrix(weightmatrix~=0);
+                tmp_x = y;
             end
             x(tmp_x~=0) = tmp_x(tmp_x~=0); %image may not be covered in sample
         end

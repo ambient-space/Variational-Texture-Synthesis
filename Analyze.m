@@ -9,21 +9,16 @@ classdef Analyze
         function synth_info = get_tiling(x,y,blocksize,show)
             
             [M,N,~] = size(x);
-            M = M-blocksize+1;N=N-blocksize+1;
-            
             pos_map = Analyze.get_pos_map(M,N);
-            
-            ids_x = generate_sample_ids(size(x),blocksize,1);
-            ids_y = generate_sample_ids(size(y),blocksize,1);
+            ids_x = generate_sample_ids(size(x),1);
+            ids_y = generate_sample_ids(size(y),1);
             
             
             X = Transform.im2col_sample(x, blocksize, ids_x);
             Y = Transform.im2col_sample(y, blocksize, ids_y);
             
             [~,NN_ids] = Transport.nn_search(Y,X);
-            
             [M2,N2,~] = size(y);
-            M2 = M2-blocksize+1; N2 = N2 - blocksize+1;
             
             tiling_image = zeros(M2,N2,3);
             for c = 1:3
@@ -31,8 +26,7 @@ classdef Analyze
                 tiling_image(:,:,c) = reshape(tmp1(NN_ids),[M2,N2]);
             end
             
-            tiling_image = padarray(tiling_image, size(y)-size(tiling_image),'replicate','post');
-           
+            
             r = imfilter(mean(tiling_image,3),fspecial('laplacian'));
             r = r>.015;
             

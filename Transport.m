@@ -1,6 +1,6 @@
 classdef Transport
     properties (Constant)
-        use_gpu = 1;
+        use_gpu = 0;
     end
     
     methods (Static)
@@ -26,7 +26,7 @@ classdef Transport
             X_l2 = single(X_l2);
             Y_l2 = single(Y_l2);
             
-            B = 2000;
+            B = 100;
             
             N = ceil(size(Y_l2,2)/B);
             Y_l2 = [Y_l2,zeros(size(Y_l2,1),N*B-size(Y_l2,2))];%pad Y_l2
@@ -78,23 +78,30 @@ classdef Transport
         end
         
         
-        
-        function y = transfer_autocorr(y,x)
-            Na = 5;
-            la = floor((Na-1)/2);
-            ace = NaN * ones(Na,Na);
-            ch = x;
-            [Nly, Nlx] = size(ch);
-            Sch = min(Nlx, Nly);
-            le = min(Sch/2-1,la);
-            cx = Nlx/2+1;  %Assumes Nlx even
-            cy = Nly/2+1;
-            ac = fftshift(real(ifft2(abs(fft2(ch)).^2)))/prod(size(ch));
-            ac = ac(cy-le:cy+le,cx-le:cx+le);
-            ace(la-le+1:la+le+1,la-le+1:la+le+1) = ac;
-            
-            [y, ~] = modacor22(y, ace,1);
+        function Y = sparsecode(X,D,sparsity)
+            %This mex function needs to be compiled to work
+            Y = omp_chol(D'*X,D'*D,sparsity);
         end
+        
+        
+        
+        
+%         function y = transfer_autocorr(y,x)
+%             Na = 5;
+%             la = floor((Na-1)/2);
+%             ace = NaN * ones(Na,Na);
+%             ch = x;
+%             [Nly, Nlx] = size(ch);
+%             Sch = min(Nlx, Nly);
+%             le = min(Sch/2-1,la);
+%             cx = Nlx/2+1;  %Assumes Nlx even
+%             cy = Nly/2+1;
+%             ac = fftshift(real(ifft2(abs(fft2(ch)).^2)))/prod(size(ch));
+%             ac = ac(cy-le:cy+le,cx-le:cx+le);
+%             ace(la-le+1:la+le+1,la-le+1:la+le+1) = ac;
+%             
+%             [y, ~] = modacor22(y, ace,1);
+%         end
         
         
         

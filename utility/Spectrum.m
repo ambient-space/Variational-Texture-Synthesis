@@ -176,8 +176,8 @@ methods (Static)
     %       Spectrum.demo
 
         % Name of the images to be loaded
-        imNameA = 'bush.jpg';
-        imNameB = 'asphalt.jpg';
+        imNameA = 'stone.png';
+        imNameB = 'peppers.png';
 
         % Load images an gray versions
         imA = double(imread(imNameA)) / 255;

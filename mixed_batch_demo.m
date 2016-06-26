@@ -5,12 +5,11 @@ addpath('./../arbyreed textures/');
 figure
 files = dir('./../arbyreed textures/*.png');
 
-batch_name = './../arbyreed spectrum mrf/';
+batch_name = './../arbyreed wa mrf batch test 3/';
 mkdir(batch_name);
 
-rng(0);
 
-first_file = 'packaged_candy.png';
+first_file = 'basket.png';
 b = 1; % 1 = use first file
 
 for file = files'
@@ -40,15 +39,16 @@ t1 = Texture(x0,params);
 wc_params.num_levels = 4;
 t1.add_constraint(WaveletConstraint(t1,wc_params));
 % t1.add_constraint(HistogramConstraint(t1));
-% t1.add_constraint(SpectrumConstraint(t1));
 
-mc_params.blocksize = 2;
+mc_params.blocksize = 3;
 mc_params.x_dataratio = .25;
-mc_params.y_dataratio = .2;
+mc_params.y_dataratio = .25;
 mc_params.num_levels = 4;
+% t1.add_constraint(SpectrumConstraint(t1));
+% t1.add_constraint(MRFConstraint(t1,mc_params));
 
 t1.add_constraint(WaveletAncestryMRFConstraint(t1,mc_params));
-% t1.add_constraint(MRFConstraint(t1,mc_params));
+
 
 t1.run_variational_synthesis()
 

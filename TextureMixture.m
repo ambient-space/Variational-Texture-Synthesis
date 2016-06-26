@@ -1,44 +1,38 @@
-classdef Texture < handle
+classdef TextureMixture < handle
     
     properties (SetAccess = public)
-        x0
+        x1_in
+        x2_in
         y0
         iter
         scales
         out_scale
         type
         constraints = {};
-        x
+        band_weights; 
+        x1
+        x2
         y
-        
-        %for graceful timeout
-        start_time
-        algorithm_time
-        time_remaining
-        current_time_remaining
-        time_per_scale
     end
     
     
     
     methods
-        function texture = Texture(x_in,varargin)
-            texture.x0 = x_in;
+        function texture = TextureMixture(x1_in,x2_in,varargin)
+            texture.x1_in = x1_in;
+            texture.x2_in = x2_in;
             %default parameters
-            texture.y0 =  rand(size(texture.x0));
+            texture.y0 =  rand(size(texture.x1_in));
             texture.iter = 8;
             texture.scales = [1,.5,.25];
             texture.out_scale = 1;
             texture.type = 'alternating';
+            texture.band_weights = [.7,.3,.7,.6]; %hl,lh,hh,ll
             
             if numel(varargin)
                 params = varargin{1};
                 read_params(texture,params);
             end
-            
-            tmp = texture.scales .^2;
-            texture.time_per_scale  = tmp/sum(tmp(:));
-            
         end
         
         function add_constraint(texture,constraint)
@@ -48,15 +42,12 @@ classdef Texture < handle
         
         
         function run_variational_synthesis(texture)
-            x_sz = [size(texture.x0,1),size(texture.x0,2)];
+            x_sz = [size(texture.x1_in,1),size(texture.x1_in,2)];
             texture.y = texture.y0;
-            texture.start_time = tic;
-            
-            
             for s = numel(texture.scales):-1:1
-%                 texture.current_time_remaining = texture.time_per_scale * (texture.algorithm_time - toc(texture.start_time));
+                texture.x1 = imresize(texture.x1_in, texture.scales(s) *x_sz, 'bicubic');
+                texture.x2 = imresize(texture.x2_in, texture.scales(s) *x_sz, 'bicubic');
                 
-                texture.x = imresize(texture.x0, texture.scales(s) *x_sz, 'bicubic');
                 texture.y = imresize(texture.y, texture.out_scale *texture.scales(s) *x_sz,'bicubic');
 
                 
@@ -66,15 +57,13 @@ classdef Texture < handle
                     enforce_all_constraints(texture);
 %                     disp(['Elapsed time for iteration ',num2str(i),' is ',num2str(toc)]);
                     
-                    subplot(121);imshow(texture.x);title(['Exemplar at scale ',num2str(texture.scales(s)),', iteration ',num2str(i)]);
-                    subplot(122);imshow(texture.y);title('Synthesis');drawnow;
+                    subplot(131);imshow(texture.x1);title(['Exemplar at scale ',num2str(texture.scales(s)),', iteration ',num2str(i)]);
+                    subplot(132);imshow(texture.x2);title(['Exemplar at scale ',num2str(texture.scales(s)),', iteration ',num2str(i)]);
+                    subplot(133);imshow(texture.y);title('Synthesis');drawnow;
                 end
                 
                 
             end
-            
-            tmp_sz = size(texture.y0);
-            texture.y = imresize(texture.y,tmp_sz(1:2));
             
         end
         
@@ -84,6 +73,7 @@ classdef Texture < handle
                 enforce_constraint(constraint);
             end
         end
+        
         
         
     end

@@ -2,7 +2,6 @@ classdef WaveletAncestryMRFConstraint < handle
     properties (SetAccess = public)
         texture;
         blocksize;
-        use_gpu = 0;
         x_sample_ids;
         y_sample_ids;
         x_dataratio;
@@ -16,15 +15,11 @@ classdef WaveletAncestryMRFConstraint < handle
         function constraint = WaveletAncestryMRFConstraint(texture,varargin)
             constraint.texture = texture;
             constraint.blocksize = 2;
-            constraint.x_dataratio = .8;
-            constraint.y_dataratio = .35;
+            constraint.x_dataratio = .3;
+            constraint.y_dataratio = .45;
             if numel(varargin)
                 params = varargin{1};
-                if (isfield(params,'wavelet_type'));constraint.wavelet_type = params.wavelet_type;end;
-                if (isfield(params,'num_levels'));constraint.num_levels = params.num_levels;end;
-                if (isfield(params,'blocksize'));constraint.blocksize = params.blocksize;end;
-                if (isfield(params,'x_dataratio'));constraint.x_dataratio = params.x_dataratio;end;
-                if (isfield(params,'y_dataratio'));constraint.y_dataratio = params.y_dataratio;end;
+                read_params(constraint,params);
             end
             constraint.x_sz =  0;
         end
@@ -79,12 +74,12 @@ classdef WaveletAncestryMRFConstraint < handle
         function update_synthesis_sample(constraint)
             t = constraint.texture;
             constraint.x_sz = size(t.x);
-            constraint.y_sample_ids = generate_sample_ids(size(t.y),constraint.blocksize,constraint.y_dataratio);
+            constraint.y_sample_ids = generate_sample_ids(size(t.y),constraint.y_dataratio);
         end
         
         function update_exemplar_sample(constraint)
             t = constraint.texture;
-            constraint.x_sample_ids = generate_sample_ids(size(t.x),constraint.blocksize,constraint.x_dataratio);
+            constraint.x_sample_ids = generate_sample_ids(size(t.x),constraint.x_dataratio);
         end
     end
     

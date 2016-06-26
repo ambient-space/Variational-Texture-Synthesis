@@ -54,7 +54,7 @@ classdef Texture < handle
             
             
             for s = numel(texture.scales):-1:1
-%                 texture.current_time_remaining = texture.time_per_scale * (texture.algorithm_time - toc(texture.start_time));
+                texture.current_time_remaining = texture.time_per_scale * (texture.algorithm_time - toc(texture.start_time));
                 
                 texture.x = imresize(texture.x0, texture.scales(s) *x_sz, 'bicubic');
                 texture.y = imresize(texture.y, texture.out_scale *texture.scales(s) *x_sz,'bicubic');
@@ -84,6 +84,8 @@ classdef Texture < handle
                 enforce_constraint(constraint);
             end
         end
+        
+        function
         
         
     end
