@@ -19,7 +19,8 @@ classdef Transport
         end
         
         function [Y,NN_ids] = nn_search_cpu(Y,X,varargin)
-            is_timed = numel(varargin{1});
+            is_timed = numel(varargin);
+            
             X_l2 = (-2)*[ X ;ones( 1 , size(X,2) ); -1/2 * sum( X.^2 )  ];
             
             Y_l2 = [ Y ; -1/2 * sum( Y.^2 ) ; ones( 1 , size(Y,2) ) ];
@@ -28,7 +29,7 @@ classdef Transport
             Y_l2 = single(Y_l2);
             
             
-            B = 100;
+            B = 50;
             
             N = ceil(size(Y_l2,2)/B);
             Y_l2 = [Y_l2,zeros(size(Y_l2,1),N*B-size(Y_l2,2))];%pad Y_l2
@@ -36,8 +37,8 @@ classdef Transport
             
             if is_timed
                 start_time = tic; 
-                total_time = varargin{1}{1};
-%                 disp(['total time: ',num2str(total_time)]);
+                total_time = varargin{1};
+                whos
 %                 p  = randperm(size(Y_l2,2));
                 %We permute Y_l2, so sample order does
                 %not have a role when we time out
@@ -46,7 +47,6 @@ classdef Transport
             
             for k =1:N
                 if is_timed && toc(start_time) > total_time
-                    disp('~~~~~~~~~~~TIMEOUT~~~~~~~~~~~~~~')
                     break;
                 end
                 r = (k-1)*B+1:k*B;
@@ -54,9 +54,15 @@ classdef Transport
                 [~,tmp] = min(D,[],1);
                 NN_ids(:,k) = tmp(:);
             end
+            
             if is_timed
                 used_ids = NN_ids(NN_ids~=0);
-                Y(:,1:numel(used_ids)) = X(:,used_ids);
+                %invert the permutation
+%                 [p,pi] = sort(p);
+%                 used_ids = used_ids(pi(1:numel(used_ids)));
+%                 Y_tmp = X(:,used_ids);
+                
+                Y = X(:,used_ids);
             else
                 NN_ids = NN_ids(1:size(Y,2));
                 Y = X(:,NN_ids);

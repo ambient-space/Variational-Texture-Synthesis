@@ -36,13 +36,8 @@ classdef MRFConstraint < handle
             update_synthesis_sample(constraint); %resample patches from synthesis
             X = Transform.im2col_sample(t.x, constraint.blocksize, constraint.x_sample_ids);
             Y = Transform.im2col_sample(t.y, constraint.blocksize, constraint.y_sample_ids);
-            if t.algorithm_time 
-                if get_scale_time_remaining(t) >=0
-                    Y = Transport.nn_search(Y,X,get_scale_time_remaining(t));
-                end
-            else
+            if t.algorithm_time && t
                 Y = Transport.nn_search(Y,X);
-            end
             t.y = Transform.col2im_sample(Y,t.y,constraint.blocksize,constraint.y_sample_ids);
         end
         

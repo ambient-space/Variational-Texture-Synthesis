@@ -12,10 +12,11 @@ classdef Texture < handle
         y
         
         %for graceful timeout
+        current_scale
+        scale_algorithm_time
+        scale_start_time
         start_time
         algorithm_time
-        time_remaining
-        current_time_remaining
         time_per_scale
     end
     
@@ -30,13 +31,14 @@ classdef Texture < handle
             texture.scales = [1,.5,.25];
             texture.out_scale = 1;
             texture.type = 'alternating';
-            
+            texture.algorithm_time = 0; % algorithm runs to completion by default
+            texture.current_scale = 0;
             if numel(varargin)
                 params = varargin{1};
                 read_params(texture,params);
             end
             
-            tmp = texture.scales .^2;
+            tmp = texture.scales .^(2.5);
             texture.time_per_scale  = tmp/sum(tmp(:));
             
         end
@@ -54,37 +56,60 @@ classdef Texture < handle
             
             
             for s = numel(texture.scales):-1:1
-%                 texture.current_time_remaining = texture.time_per_scale * (texture.algorithm_time - toc(texture.start_time));
+                texture.current_scale = s;
+                if s>1
+                    texture.scale_algorithm_time = texture.time_per_scale(s)*get_time_remaining(texture);
+                else
+                    texture.scale_algorithm_time = get_time_remaining(texture);
+                end
+                texture.scale_start_time = tic;
                 
                 texture.x = imresize(texture.x0, texture.scales(s) *x_sz, 'bicubic');
                 texture.y = imresize(texture.y, texture.out_scale *texture.scales(s) *x_sz,'bicubic');
 
                 
                 for i = 1:texture.iter
-                    
-%                     tic
                     enforce_all_constraints(texture);
-%                     disp(['Elapsed time for iteration ',num2str(i),' is ',num2str(toc)]);
                     
-                    subplot(121);imshow(texture.x);title(['Exemplar at scale ',num2str(texture.scales(s)),', iteration ',num2str(i)]);
-                    subplot(122);imshow(texture.y);title('Synthesis');drawnow;
+                    
+                    subplot(121);imshow(texture.x);
+                    title(['Exemplar at scale ',num2str(texture.scales(s)),', iteration ',num2str(i)]);
+                    drawnow
+                    subplot(122);imshow(texture.y);title('Synthesis');
+                    drawnow
+                    
+                    if texture.algorithm_time && get_scale_time_remaining(texture) <=0
+                        disp('Timed out');
+                        break;
+                    end
+                    
                 end
-                
-                
             end
-            
-            tmp_sz = size(texture.y0);
-            texture.y = imresize(texture.y,tmp_sz(1:2));
-            
         end
         
         function enforce_all_constraints(texture)
             for k = 1:numel(texture.constraints)
+                
                 constraint = texture.constraints{k};
+                if texture.algorithm_time && get_time_remaining(texture) <=0
+                    disp('Timed out');
+                    return;
+                end
                 enforce_constraint(constraint);
             end
         end
         
+        
+        function tr = get_time_remaining(texture)
+            %gets the overall time remaining
+            tr = texture.algorithm_time - toc(texture.start_time);
+        end
+        
+        function tr = get_scale_time_remaining(texture)
+            %gets the time remaining for the current scale
+            %assumes algorithm_time > 0
+            tr = texture.scale_algorithm_time - toc(texture.scale_start_time);
+        end
         
     end
     

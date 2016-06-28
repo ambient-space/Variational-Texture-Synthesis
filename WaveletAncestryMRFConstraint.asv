@@ -61,9 +61,11 @@ classdef WaveletAncestryMRFConstraint < handle
                 X = Transform.im2col_sample(x_swt, constraint.blocksize, constraint.x_sample_ids);
                 Y = Transform.im2col_sample(y_swt, constraint.blocksize, constraint.y_sample_ids);
                 
-                if t.algorithm_time 
-                    if get_scale_time_remaining(t) > 0
-                        Y = Transport.nn_search(Y,X,get_scale_time_remaining(t));
+                if t.algorithm_time
+                    current_time_rem = 
+                    disp(['current time remaining: ',num2str(t.current_time_remaining)]);
+                    if t.current_time_remaining>0
+                        Y = Transport.nn_search(Y,X,t.current_time_remaining);
                     end
                 else
                     Y = Transport.nn_search(Y,X);
@@ -71,10 +73,6 @@ classdef WaveletAncestryMRFConstraint < handle
                 
                 y_swt = Transform.col2im_sample(Y,y_swt,constraint.blocksize,constraint.y_sample_ids);
                 y_swt0(:,:,band_ids(1:3*C)) = y_swt(:,:,1:3*C);
-                
-                if t.algorithm_time && get_scale_time_remaining(t) <= 0
-                    break;
-                end
             end
             t.y = Transform.haar_iudwt_2D(size(t.y),y_swt0);
         end
